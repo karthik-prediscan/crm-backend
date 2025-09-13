@@ -1,0 +1,89 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model Company {
+  id          Int      @id @default(autoincrement())
+  name        String
+  website     String?
+  phone       String?
+  email       String?
+  industry    String?
+  address     String?
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  contacts Contact[]
+  deals    Deal[]
+
+  @@map("companies")
+}
+
+model Contact {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String?
+  phone     String?
+  position  String?
+  notes     String?
+  companyId Int?     @map("company_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  company Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  deals   DealContact[]
+
+  @@map("contacts")
+}
+
+model Deal {
+  id                Int      @id @default(autoincrement())
+  title             String
+  description       String?
+  value             Decimal?
+  stage             String   @default("lead")
+  companyId         Int?     @map("company_id")
+  expectedCloseDate DateTime? @map("expected_close_date")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  company  Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  contacts DealContact[]
+
+  @@map("deals")
+}
+
+model DealContact {
+  dealId    Int @map("deal_id")
+  contactId Int @map("contact_id")
+
+  // Relations
+  deal    Deal    @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  contact Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@id([dealId, contactId])
+  @@map("deal_contacts")
+}
