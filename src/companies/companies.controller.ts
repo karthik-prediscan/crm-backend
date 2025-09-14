@@ -3,10 +3,9 @@ import  { CompaniesService } from "./companies.service"
 import { JwtAuthGuard } from "../auth/jwt-auth.guard"
 
 @Controller("companies")
-@UseGuards(JwtAuthGuard)
 export class CompaniesController {
   constructor(private readonly companiesService: CompaniesService) {}
-
+  @UseGuards(JwtAuthGuard)
   @Post()
   create(@Body() body: {
     name: string
@@ -18,7 +17,7 @@ export class CompaniesController {
   }) {
     return this.companiesService.create(body)
   }
-
+@UseGuards(JwtAuthGuard)
   @Get()
   findAll(
     @Query('page') page: string = '1',

@@ -3,12 +3,12 @@ import  { DealsService } from "./deals.service"
 import { JwtAuthGuard } from "../auth/jwt-auth.guard"
 
 @Controller("deals")
-@UseGuards(JwtAuthGuard)
+// @UseGuards(JwtAuthGuard)
 export class DealsController {
   constructor(private readonly dealsService: DealsService) {}
 
   @Post()
-  create(@Body() body: {
+  async create(@Body() body: {
     title: string
     description?: string
     value?: number
@@ -16,7 +16,7 @@ export class DealsController {
     companyId?: number
     contactIds?: number[]
   }) {
-    return this.dealsService.create(body)
+    return await this.dealsService.create(body)
   }
 
   @Get()

@@ -6,41 +6,42 @@ import { Decimal } from "@prisma/client/runtime/library"
 export class DealsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(dealData: {
-    title: string
-    description?: string
-    value?: number
-    stage?: string
-    companyId?: number
-    expectedCloseDate?: Date
-    contactIds?: number[]
-  }) {
-    return await this.prisma.$transaction(async (tx) => {
-      // Create the deal
-      const deal = await tx.deal.create({
-        data: { 
-          title: dealData.title,
-          description: dealData.description,
-          value: dealData.value ? new Decimal(dealData.value) : null,
-          stage: dealData.stage || "lead",
-          companyId: dealData.companyId,
-          expectedCloseDate: dealData.expectedCloseDate,
-        },
-      })
+async create(dealData: {
+  title: string
+  description?: string
+  value?: number
+  stage?: string
+  companyId?: number
+  expectedCloseDate?: Date
+  contactIds?: number[]
+}) {
 
-      // Add contact associations if provided
-      if (dealData.contactIds && dealData.contactIds.length > 0) {
-        await tx.dealContact.createMany({
-          data: dealData.contactIds.map((contactId) => ({
-            dealId: deal.id,
-            contactId,
-          })),
-        })
-      }
+  // Step 1: Create the deal
+  const deal = await this.prisma.deal.create({
+    data: { 
+      title: dealData.title,
+      description: dealData.description,
+      value: dealData.value ? new Decimal(dealData.value) : null,
+      stage: dealData.stage || "lead",
+      companyId: dealData.companyId,
+      expectedCloseDate: dealData.expectedCloseDate,
+    },
+  })
 
-      return this.findOne(deal.id)
+  // Step 2: Add contact associations if provided
+  if (dealData.contactIds && dealData.contactIds.length > 0) {
+    await this.prisma.dealContact.createMany({
+      data: dealData.contactIds.map((contactId) => ({
+        dealId: deal.id,
+        contactId,
+      })),
     })
   }
+
+  // Step 3: Fetch and return the created deal with associated contacts
+  const dealWithContacts = await this.findOne(deal.id)
+  return dealWithContacts
+}
 
   async findAll(page = 1, limit = 10, sortBy = "createdAt", sortOrder: "asc" | "desc" = "desc") {
     const skip = (page - 1) * limit

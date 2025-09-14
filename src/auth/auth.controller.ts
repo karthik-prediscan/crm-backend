@@ -12,7 +12,7 @@ export class AuthController {
   async login(@Body() body: { email: string; password: string }) {
     return this.authService.login(body)
   }
-
+  
   @Post("register")
   async register(@Body() body: { email: string; password: string; firstName: string; lastName: string }) {
     const { email, password, firstName, lastName } = body;
